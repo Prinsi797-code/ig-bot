@@ -1,0 +1,30 @@
+name: Instagram Bot
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Har 4 ghante
+  workflow_dispatch:         # Manual trigger bhi
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright schedule requests
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Run bot
+        env:
+          ADMIN_URL: ${{ secrets.ADMIN_URL }}
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          xvfb-run python3 ig_auto_bot.py
