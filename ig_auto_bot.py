@@ -2,9 +2,11 @@ import asyncio, json, requests, sys, time, re
 from pathlib import Path
 from urllib.parse import unquote_plus
 from datetime import datetime
+import os
 
-ADMIN_URL = "https://currency.shaktiornate.com/admin.php"
-API_KEY   = "Password123!"
+
+ADMIN_URL = os.environ.get("ADMIN_URL", "https://currency.shaktiornate.com/admin.php")
+API_KEY   = os.environ.get("API_KEY", "Password123!")
 
 SESSION_FILE = "ig_session.json"
 captured = {}
