@@ -2,11 +2,9 @@ import asyncio, json, requests, sys, time, re
 from pathlib import Path
 from urllib.parse import unquote_plus
 from datetime import datetime
-import os
 
-
-ADMIN_URL = os.environ.get("ADMIN_URL", "https://currency.shaktiornate.com/admin.php")
-API_KEY   = os.environ.get("API_KEY", "Password123!")
+ADMIN_URL = "https://currency.shaktiornate.com/admin.php"
+API_KEY   = "Password123!"
 
 SESSION_FILE = "ig_session.json"
 captured = {}
@@ -35,31 +33,33 @@ async def intercept(request):
                 captured["IG_REV"]     = params.get("__rev", "")
                 captured["IG_HSI"]     = params.get("__hsi", "")
                 captured["IG_AV"]      = params.get("av", "")
-                # Naye fields capture karo
-                if params.get("__hs"):
-                    captured["IG_HS"]  = params.get("__hs", "")
-                if params.get("__s"):
-                    captured["IG_S"]   = params.get("__s", "")
-                if params.get("__dyn"):
-                    captured["IG_DYN"] = params.get("__dyn", "")
-                if params.get("__ccg"):
-                    captured["IG_CCG"] = params.get("__ccg", "")
-                if params.get("dpr"):
-                    captured["IG_DPR"] = params.get("dpr", "")
-                if params.get("__crn"):
-                    captured["IG_CRN"] = params.get("__crn", "")
+                if params.get("__hs"):   captured["IG_HS"]  = params["__hs"]
+                if params.get("__s"):    captured["IG_S"]   = params["__s"]
+                if params.get("__dyn"):  captured["IG_DYN"] = params["__dyn"]
+                if params.get("__ccg"):  captured["IG_CCG"] = params["__ccg"]
+                if params.get("dpr"):    captured["IG_DPR"] = params["dpr"]
+                if params.get("__crn"):  captured["IG_CRN"] = params["__crn"]
 
                 dtsg = params.get("fb_dtsg", "")
                 if dtsg and len(dtsg) > 10:
                     captured["IG_FB_DTSG"] = dtsg
+
                 doc_id = params.get("doc_id", "")
                 friendly_name = params.get("fb_api_req_friendly_name", "")
-                if doc_id and "PolarisPost" in friendly_name:
-                    captured["IG_INITIAL_DOC_ID"] = doc_id
-                    print(f"  ✅ doc_id captured: {doc_id}")
+                
+                if doc_id and len(doc_id) > 10:
+                    if not captured.get("IG_INITIAL_DOC_ID"):
+                        captured["IG_INITIAL_DOC_ID"] = doc_id
+                        print(f"  📌 doc_id (any): {doc_id} [{friendly_name[:30]}]")
+                    
+                    # PolarisPost wala mile toh override karo - ye best hai
+                    if "PolarisPost" in friendly_name:
+                        captured["IG_INITIAL_DOC_ID"] = doc_id
+                        print(f"  ✅ doc_id (PolarisPost): {doc_id}")
+
     except Exception:
         pass
-
+        
 async def try_open_reel(page, url):
     print(f"  Opening: {url}")
     try:
